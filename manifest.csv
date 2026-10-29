@@ -1,0 +1,5 @@
+job_id,subproject,job,sample,thickness_cm,energy_kev,input_file
+MAC/BLANK_0cm_100keV,MAC,BLANK_0cm_100keV,BLANK,0.0,100.0,BLANK_0cm_100keV.py
+MAC/BLANK_0cm_1000keV,MAC,BLANK_0cm_1000keV,BLANK,0.0,1000.0,BLANK_0cm_1000keV.py
+MAC/S3_0p5cm_1000keV,MAC,S3_0p5cm_1000keV,S3,0.5,1000.0,S3_0p5cm_1000keV.py
+MAC/S3_1p5cm_100keV,MAC,S3_1p5cm_100keV,S3,1.5,100.0,S3_1p5cm_100keV.py

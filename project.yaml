@@ -1,0 +1,94 @@
+name: 2026.10.30_Paper10.1_iso-smoketest_OpenMC
+tool: OpenMC
+description: Paper 10.1 (PNE 2022) - OpenMC, 1e+07 hạt/job. NGUỒN ĐIỂM ĐẲNG HƯỚNG
+  (4π) tại gốc toạ độ như bài báo mục 2.2 ('point isotropic source'), thay cho chùm
+  song song +z của bản 2026.10.29. Hình học, vật liệu, tally, vật lý giữ nguyên. Chỉ
+  ~2.5e-5 số hạt lọt qua lỗ chuẩn trực (năng lượng thấp) nên thống kê kém hơn chùm
+  song song rất nhiều. Sao chép từ 2026.10.29_Paper10.1_1e6_OpenMC (đã gồm các sửa
+  lỗi ngày 2026-10-29).
+primaries: 10000000
+runners_per_account: 1
+timeout_minutes: 60
+max_rescue_rounds: 0
+drive:
+  parent_folder_id: ''
+  root_folder_id: 1Veu3bjewnGEaEw1BwVnOLUv5fwHQKOKW
+github:
+  repo: ''
+subprojects:
+- name: MAC
+  samples:
+  - S1
+  - S2
+  - S3
+  - S4
+  - S5
+  - S6
+  - S7
+  - S8
+  thicknesses_cm:
+  - 0.005
+  - 0.1
+  - 0.3
+  - 0.5
+  - 0.8
+  - 1.0
+  - 1.5
+  - 2.0
+  - 2.5
+  - 3.0
+  energies_kev:
+  - 15
+  - 20
+  - 30
+  - 40
+  - 50
+  - 60
+  - 80
+  - 100
+  - 200
+  - 300
+  - 400
+  - 500
+  - 600
+  - 800
+  - 1000
+  - 2000
+  - 3000
+  - 4000
+  - 5000
+  - 6000
+  - 8000
+  - 10000
+  - 15000
+  jobs_file: jobs.csv
+  input_template: '{job}.py'
+run:
+  command: python3 {input}
+  parser: csv_last_row
+  result_file: result.csv
+  outputs:
+  - statepoint.*.h5
+  - tallies.out
+  - '*.xml'
+  copy_files:
+  - model.py
+storage: local
+harvest:
+  download_outputs: true
+analysis:
+  type: attenuation
+  intensity_column: peak_value
+  i0:
+    mode: blank
+    sample: BLANK
+  densities_g_cm3:
+    S1: 2.39
+    S2: 2.725
+    S3: 2.908
+    S4: 3.103
+    S5: 3.836
+    S6: 3.909
+    S7: 4.181
+    S8: 4.411
+  theory_csv: theory/mac_theory.csv

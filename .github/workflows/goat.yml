@@ -1,0 +1,54 @@
+name: GOAT OpenMC (2026.10.30_Paper10.1_iso-smoketest_OpenMC)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode: {description: 'normal | rescue', required: true, default: 'normal', type: string}
+      jobs: {description: 'rescue: job_id cách nhau dấu phẩy', required: false, default: '', type: string}
+      drive_root: {description: 'Drive root folder id (tham khảo)', required: false, default: '', type: string}
+
+jobs:
+  run:
+    name: Runner ${{ matrix.runner_id }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        runner_id: [1]
+    steps:
+      - name: Mark job start (GOAT đo thời gian setup)
+        run: echo "GOAT_T0=$(date +%s)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+
+      - name: Install OpenMC (micromamba conda-forge)
+        shell: bash
+        run: |
+          curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj bin/micromamba -O > /tmp/micromamba
+          chmod +x /tmp/micromamba
+          /tmp/micromamba create -y -q -p /tmp/env -c conda-forge \
+            openmc python=3.11 pyyaml pandas numpy h5py openpyxl requests \
+            google-api-python-client google-auth google-auth-httplib2
+
+      - name: Verify & extract nuclear data (packages/openmc_data.part_*)
+        shell: bash
+        run: |
+          cd packages && sha256sum -c SHA256SUMS && cd ..
+          cat packages/openmc_data.part_* > /tmp/nd.tar.gz
+          tar -xzf /tmp/nd.tar.gz -C /tmp/ && rm /tmp/nd.tar.gz
+          XS=$(find /tmp/nuclear_data -name cross_sections.xml | head -1)
+          [ -n "$XS" ] || { echo "Không thấy cross_sections.xml"; exit 1; }
+          echo "OPENMC_CROSS_SECTIONS=$XS" >> "$GITHUB_ENV"
+
+      - name: Run GOAT worker
+        shell: bash
+        env:
+          GDRIVE_OAUTH_JSON: ${{ secrets.GDRIVE_OAUTH_JSON }}
+          GOAT_MODE: ${{ inputs.mode }}
+          GOAT_JOBS: ${{ inputs.jobs }}
+        run: |
+          export PATH="/tmp/env/bin:$PATH"
+          export OMP_NUM_THREADS=$(nproc)
+          python -u -m goat.worker --account "${{ github.repository_owner }}" \
+            --runner-id ${{ matrix.runner_id }} --mode "$GOAT_MODE" --jobs "$GOAT_JOBS"
